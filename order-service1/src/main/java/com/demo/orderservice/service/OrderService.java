@@ -7,6 +7,7 @@ import com.demo.orderservice.model.Order;
 import com.demo.orderservice.model.OrderLineItems;
 import com.demo.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,12 +19,13 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
 
     private final WebClient.Builder webClientBuilder;
-    public void placeOrder(OrderRequest orderRequest){
+    public String placeOrder(OrderRequest orderRequest){
         Order order=new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList= orderRequest.getOrderLineItemsDtoList()
@@ -48,8 +50,9 @@ public class OrderService {
         boolean result = Arrays.stream(inventoryResponses).allMatch(InventoryResponse::isInstock);
         if(result){
             orderRepository.save(order);
+            return "Order Placed";
         }else{
-            throw new IllegalArgumentException("Item is out of Stock");
+            throw new IllegalArgumentException("Product is not in stock, please try again later");
         }
 
     }
